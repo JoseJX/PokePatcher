@@ -445,6 +445,133 @@ function STAT_AND(b) {
 	return 6;
 }
 
+// This fix is specific to Pokemon Crystal Clear
+function STAT_FF41_LCDC(b) {
+	// ld hl, $ff41
+	if (ROM[b+0] !== 0x21) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x41) {
+		return 0;
+	}
+	if (ROM[b+2] !== 0xFF) {
+		return 0;
+	}
+	// ld a, $01
+	if (ROM[b+3] !== 0x3E) {
+		return 0;
+	}
+	if (ROM[b+4] !== 0x01) {
+		return 0;
+	}
+	// ld a, [hl]
+	if (ROM[b+5] !== 0x7E) {
+		return 0;
+	}
+	// and $03
+	if (ROM[b+6] !== 0xE6) {
+		return 0;
+	}
+	if (ROM[b+7] !== 0x03) {
+		return 0;
+	}
+	// cp $01
+	if (ROM[b+8] !== 0xFE) {
+		return 0;
+	}
+	if (ROM[b+9] !== 0x01) {
+		return 0;
+	}
+	// jr nz, XX
+	if (ROM[b+10] !== 0x20) {
+		return 0;
+	}
+	// Skip the address
+	// b+11
+	// dec hl
+	if (ROM[b+12] !== 0x2B) {
+		return 0;
+	}
+	// res 7, [hl]
+	if (ROM[b+13] !== 0xCB) {
+		return 0;
+	}
+	if (ROM[b+14] !== 0xBE) {
+		return 0;
+	}
+
+	// Remove the ld a, $01, it's useless
+	newROM[b+3] = ROM[b+5];
+	newROM[b+4] = ROM[b+6];
+	// Patch the bit order for STAT
+	newROM[b+5] = flipTable[ROM[b+7]];
+	newROM[b+6] = ROM[b+8];
+	newROM[b+7] = flipTable[ROM[b+9]];
+	// Copy the jr
+	newROM[b+8] = ROM[b+10];
+	newROM[b+9] = ROM[b+11];
+	// Patch the address for LCDC
+	newROM[b+10] = 0x21;	
+	newROM[b+11] = 0x4E;
+	newROM[b+12] = 0xFF;
+	// Patch the bit order for LCDC
+	newROM[b+14] = 0x86;
+
+	console.log("STAT FF41 LCDC found at: " + b);
+	return 15;
+}
+
+// This fix is specific to Pokemon Crystal Clear
+function STAT_FF41(b) {
+	// ld hl, $ff41
+	if (ROM[b+0] !== 0x21) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x41) {
+		return 0;
+	}
+	if (ROM[b+2] !== 0xFF) {
+		return 0;
+	}
+	// ld a, $01
+	if (ROM[b+3] !== 0x3E) {
+		return 0;
+	}
+	if (ROM[b+4] !== 0x01) {
+		return 0;
+	}
+	// ld a, [hl]
+	if (ROM[b+5] !== 0x7E) {
+		return 0;
+	}
+	// and $03
+	if (ROM[b+6] !== 0xE6) {
+		return 0;
+	}
+	if (ROM[b+7] !== 0x03) {
+		return 0;
+	}
+	// cp $01
+	if (ROM[b+8] !== 0xFE) {
+		return 0;
+	}
+	if (ROM[b+9] !== 0x01) {
+		return 0;
+	}
+	// jr nz, XX
+	if (ROM[b+10] !== 0x20) {
+		return 0;
+	}
+
+	// Patch the bit order for STAT
+	newROM[b+7] = flipTable[ROM[b+7]];
+	newROM[b+8] = ROM[b+8];
+	newROM[b+9] = flipTable[ROM[b+9]];
+
+	console.log("STAT FF41 found at: " + b);
+	return 15;
+}
+
 function RTC_STOP(b) {
 	// ld a, $0c
 	if (ROM[b+0] !== 0x3E) {
@@ -767,6 +894,21 @@ fileBox.onchange = function (e) {
 
 			// Looking for STAT = STAT & XX; jr
 			skipN = STAT_AND(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+			
+			// Looking for Pokemon Crystal Clear $ff41 use
+			// This one must be done first so we don't miss
+			// the hidden LCDC :(
+			skipN = STAT_FF41_LCDC(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+			
+			skipN = STAT_FF41(idx);
 			if (skipN > 0) {
 				idx += skipN;
 				continue;
