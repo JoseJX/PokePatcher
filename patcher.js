@@ -445,6 +445,209 @@ function STAT_AND(b) {
 	return 6;
 }
 
+function RTC_STOP(b) {
+	// ld a, $0c
+	if (ROM[b+0] !== 0x3E) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x0C) {
+		return 0;
+	}
+	// ld [$4000], a
+	if (ROM[b+2] !== 0xEA) {
+		return 0;
+	}
+	if (ROM[b+3] != 0x00) {
+		return 0;
+	}
+	if (ROM[b+4] != 0x40) {
+		return 0;
+	}
+	// ld a, [$a000]
+	if (ROM[b+5] !== 0xFA) {
+		return 0;
+	}
+	if (ROM[b+6] != 0x00) {
+		return 0;
+	}
+	if (ROM[b+7] != 0xA0) {
+		return 0;
+	}
+	// set 6, a
+	if (ROM[b+8] != 0xCB) {
+		return 0;
+	}
+	if (ROM[b+9] != 0xF7) {
+		return 0;
+	}
+
+	// Fix the RTC Address
+	newROM[b+7] = 0xBF;
+	newROM[b+6] = 0xFF;
+	console.log("RTC Stop found at: " + b);
+	return 10;
+}
+
+function RTC_START(b) {
+	// ld a, $0c
+	if (ROM[b+0] !== 0x3E) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x0C) {
+		return 0;
+	}
+	// ld [$4000], a
+	if (ROM[b+2] !== 0xEA) {
+		return 0;
+	}
+	if (ROM[b+3] != 0x00) {
+		return 0;
+	}
+	if (ROM[b+4] != 0x40) {
+		return 0;
+	}
+	// ld a, [$a000]
+	if (ROM[b+5] !== 0xFA) {
+		return 0;
+	}
+	if (ROM[b+6] != 0x00) {
+		return 0;
+	}
+	if (ROM[b+7] != 0xA0) {
+		return 0;
+	}
+	// res 6, a
+	if (ROM[b+8] != 0xCB) {
+		return 0;
+	}
+	if (ROM[b+9] != 0xB7) {
+		return 0;
+	}
+
+	// Fix the RTC Address
+	newROM[b+7] = 0xBF;
+	newROM[b+6] = 0xFF;
+	console.log("RTC Start found at: " + b);
+	return 10;
+}
+
+function RTC_SAVE(b) {
+	// ld hl, $a000
+	if (ROM[b+0] !== 0x21) {
+		return 0;
+	}
+	if (ROM[b+1] != 0x00) {
+		return 0;
+	}
+	if (ROM[b+2] != 0xA0) {
+		return 0;
+	}
+	// ld a, $0c
+	if (ROM[b+3] !== 0x3E) {
+		return 0;
+	}
+	if (ROM[b+4] !== 0x0C) {
+		return 0;
+	}
+	// ld [$4000], a
+	if (ROM[b+5] !== 0xEA) {
+		return 0;
+	}
+	if (ROM[b+6] != 0x00) {
+		return 0;
+	}
+	if (ROM[b+7] != 0x40) {
+		return 0;
+	}
+	// res 7, hl
+	if (ROM[b+8] != 0xCB) {
+		return 0;
+	}
+	if (ROM[b+9] != 0xBE) {
+		return 0;
+	}
+
+	// Fix the RTC Address
+	newROM[b+2] = 0xBF;
+	newROM[b+1] = 0xFF;
+	console.log("RTC Save found at: " + b);
+	return 10;
+}
+
+function RTC_GET_CLOCK(b) {
+	// ld de, $a000
+	if (ROM[b+0] !== 0x11) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x00) {
+		return 0;
+	}
+	if (ROM[b+2] !== 0xA0) {
+		return 0;
+	}
+	// ld [hl], $08
+	if (ROM[b+3] !== 0x36) {
+		return 0;
+	}
+	if (ROM[b+4] !== 0x08) {
+		return 0;
+	}
+	// ld a, [de]
+	if (ROM[b+5] !== 0x1A) {
+		return 0;
+	}
+	// and $3f
+	if (ROM[b+6] !== 0xE6) {
+		return 0;
+	}
+	if (ROM[b+7] !== 0x3F) {
+		return 0;
+	}
+
+	// Fix the RTC Address
+	newROM[b+2] = 0xBF;
+	newROM[b+1] = 0xFF;
+	console.log("RTC GET Clock found at: " + b);
+	return 8;
+}
+
+function RTC_SET_CLOCK(b) {
+	// ld de, $a000
+	if (ROM[b+0] !== 0x11) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x00) {
+		return 0;
+	}
+	if (ROM[b+2] !== 0xA0) {
+		return 0;
+	}
+	// ld [hl], $0c
+	if (ROM[b+3] !== 0x36) {
+		return 0;
+	}
+	if (ROM[b+4] !== 0x0C) {
+		return 0;
+	}
+	// ld a, [de]
+	if (ROM[b+5] !== 0x1A) {
+		return 0;
+	}
+	// bit 6, a
+	if (ROM[b+6] !== 0xCB) {
+		return 0;
+	}
+	if (ROM[b+7] !== 0x77) {
+		return 0;
+	}
+
+	// Fix the RTC Address
+	newROM[b+2] = 0xBF;
+	newROM[b+1] = 0xFF;
+	console.log("RTC SET Clock found at: " + b);
+	return 8;
+}
+
 fileBox.onchange = function (e) {
 	e.preventDefault();
 
@@ -569,6 +772,37 @@ fileBox.onchange = function (e) {
 				continue;
 			}
 
+			// Looking for RTC usage
+			skipN = RTC_STOP(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+			
+			skipN = RTC_START(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+			
+			skipN = RTC_SAVE(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+			
+			skipN = RTC_GET_CLOCK(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+			
+			skipN = RTC_SET_CLOCK(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+
 			// No matches, next byte
 			idx++;
 		}
@@ -583,7 +817,7 @@ fileBox.onchange = function (e) {
 
 		link.href = objectURL;
 		link.href = URL.createObjectURL( blob );
-		link.download =  file.name.substring(0,56) + ".pocket";
+		link.download =  file.name.substring(0,32) + ".pocket";
 		link.click();
 	};
 	reader.readAsArrayBuffer(file);

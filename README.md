@@ -19,4 +19,5 @@ No, make a request at the [Wishing Well](https://docs.google.com/forms/d/e/1FAIp
 
 # Known Issues
 
- * RTC Save Game Corruption?
+ * Possible Save Game Corruption due to RTC? - I've tried to fix this, but haven't tested it
+ * Lack of RTC setting option makes some games difficult - You can patch yourself before if there's a patch available.
