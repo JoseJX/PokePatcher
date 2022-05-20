@@ -320,6 +320,60 @@ function LCDC_AND(b) {
 	return 6;
 }
 
+function LCDC_AND_RET(b) {
+	// LDH a, LCDC
+	if (ROM[b+0] !== 0xF0) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x40) {
+		return 0;
+	}
+
+	// AND d8
+	if (ROM[b+2] !== 0xE6) {
+		return 0;
+	}
+
+	// RET [nz|nc|z|c] s8
+	var r = ROM[b+4];
+	if ((r !== 0xC0) && (r !== 0xC8) && (r !== 0xD0) && (r !== 0xD8)) {
+		return 0;
+	}
+
+	// Fix LCDC and fix the AND value
+	newROM[b+1] = 0x4E;
+	newROM[b+3] = flipTable[ROM[b+3]];
+	console.log("LCDC AND RET found at: " + b);
+	return 6;
+}
+
+function LCDC_AND_JR(b) {
+	// LDH a, LCDC
+	if (ROM[b+0] !== 0xF0) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x40) {
+		return 0;
+	}
+
+	// AND d8
+	if (ROM[b+2] !== 0xE6) {
+		return 0;
+	}
+
+	// JR [nz|nc|z|c] s8
+	var r = ROM[b+4];
+	if ((r !== 0x20) && (r !== 0x28) && (r !== 0x30) && (r !== 0x38)) {
+		return 0;
+	}
+
+	// Fix LCDC and fix the AND value
+	newROM[b+1] = 0x4E;
+	newROM[b+3] = flipTable[ROM[b+3]];
+	console.log("LCDC AND JR found at: " + b);
+	return 6;
+}
+
 function LCDC_FF40(b) {
 	// LD hl, ff40
 	if (ROM[b+0] !== 0x21) {
@@ -443,6 +497,38 @@ function STAT_AND(b) {
 	newROM[b+3] = flipTable[ROM[b+3]];
 	console.log("STAT AND found at: " + b);
 	return 6;
+}
+
+// This fix is for Pokemon Yellow derivitives
+function STAT_IN_B(b) {
+	// LD b, $02
+	if (ROM[b+0] !== 0x06) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x02) {
+
+	}
+	// LDH a, LCDC
+	if (ROM[b+2] !== 0xF0) {
+		return 0;
+	}
+	if (ROM[b+3] !== 0x40) {
+		return 0;
+	}
+
+	// AND $80
+	if (ROM[b+4] !== 0xE6) {
+		return 0;
+	}
+	if (ROM[b+5] !== 0x80) {
+		return 0;
+	}
+
+	// Flip the AND value
+	newROM[b+1] = flipTable[ROM[b+1]];
+	console.log("STAT IN B at: " + b);
+	// We only skip the first two bytes, the next part will be taken care of by another checker
+	return 2;
 }
 
 // This fix is specific to Pokemon Crystal Clear
@@ -871,6 +957,20 @@ fileBox.onchange = function (e) {
 				continue;
 			}
 
+			// Looking for LCDC & XX, ret
+			skipN = LCDC_AND_RET(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+			
+			// Looking for LCDC & XX, JR
+			skipN = LCDC_AND_JR(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+
 			// Looking for ld ff40, res/set
 			skipN = LCDC_FF40(idx);
 			if (skipN > 0) {
@@ -894,6 +994,13 @@ fileBox.onchange = function (e) {
 
 			// Looking for STAT = STAT & XX; jr
 			skipN = STAT_AND(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+
+			// Looking for STAT in b (Pokemon Yellow)
+			skipN = STAT_IN_B(idx);
 			if (skipN > 0) {
 				idx += skipN;
 				continue;
