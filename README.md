@@ -19,5 +19,5 @@ No, make a request at the [Wishing Well](https://docs.google.com/forms/d/e/1FAIp
 
 # Known Issues
 
- * Possible Save Game Corruption due to RTC? - I've tried to fix this, but haven't tested it
- * Lack of RTC setting option makes some games difficult - You can patch yourself before if there's a patch available.
+ * Possible Save Game Corruption due to RTC? - I've tried to fix this, but haven't tested it, please provide some feedback!
+ * Lack of RTC setting option makes some games difficult - You can patch yourself with an RTC changing hack before using this tool. Something like [this one](https://www.romhacking.net/hacks/3841/) if your ROM supports it would be the best option. Unfortunately, I don't have a generic solution for this yet.
