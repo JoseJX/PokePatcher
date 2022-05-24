@@ -910,9 +910,17 @@ fileBox.onchange = function (e) {
 		console.log("Analogue Header Inserted");
 
 		// Fix the cart type, if it's MBC3
-		if (ROM[0x147] == 0x10) {
+		if ((ROM[0x147] == 0x10) || (ROM[0x147] == 0x13)) {
 			newROM[0x147] = 0x1B;
+			console.log("Changed cartridge type from MBC3 to MBC5 (+RAM +BAT)");
+		}
+		if (ROM[0x147] == 0x11) {
+			newROM[0x147] = 0x19;
 			console.log("Changed cartridge type from MBC3 to MBC5");
+		}
+		if (ROM[0x147] == 0x12) {
+			newROM[0x147] = 0x1A;
+			console.log("Changed cartridge type from MBC3 to MBC5 (+RAM)");
 		}
 
 		var lastIdx = 0;
