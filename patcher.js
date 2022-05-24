@@ -73,7 +73,7 @@ function RSwap(b, checkVal = 0xFF) {
 }
 
 const AllowedLCDC = [
-	0xE3, 0xAB, 0x80, 0x8B, 0x93
+	0xE3, 0xAB, 0x80, 0x8B, 0x93, 0xE7
 ];
 const AllowedSTAT = [
 	0x08
@@ -658,6 +658,29 @@ function STAT_FF41(b) {
 	return 15;
 }
 
+// This fix is specific to Pokemon Polished Crystal
+function STAT_BC_PPC(b) {
+	// ld bc, $0341
+	if (ROM[b+0] !== 0x01) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x41) {
+		return 0;
+	}
+	if (ROM[b+2] !== 0x03) {
+		return 0;
+	}
+	// jr
+	if (ROM[b+3] !== 0x18) {
+		return 0;
+	}
+
+	// Swap the 03
+	newROM[b+2] = 0xC0;
+	console.log("STAT BC PPC found at: " + b);
+	return 4;
+}
+
 function RTC_STOP(b) {
 	// ld a, $0c
 	if (ROM[b+0] !== 0x3E) {
@@ -980,6 +1003,13 @@ fileBox.onchange = function (e) {
 			
 			// Looking for STAT BC
 			skipN = STAT_BC(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+
+			// Looking for STAT BC PPC
+			skipN = STAT_BC_PPC(idx);
 			if (skipN > 0) {
 				idx += skipN;
 				continue;
