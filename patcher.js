@@ -9,6 +9,11 @@ const analogueHeader = [
         0x44, 0x40, 0x9a, 0x90, 0xd5, 0xd0, 0x44, 0x30, 0xa9, 0x21, 0x5d, 0x48, 0x22, 0xe0, 0xf8, 0x60
 ];
 
+// RST Instructions
+const rstInst = [
+	0xC0, 0xC7, 0xD0, 0xD7, 0xE0, 0xE7, 0xF0, 0xF7
+];
+
 // Convert bit instructions
 const BITInst = [
 	0x40, 0x48, 0x50, 0x58, 0x60, 0x68, 0x70, 0x78
@@ -447,6 +452,69 @@ function STAT_BC(b) {
 	return 5;
 }
 
+// Ugh, this is ridiculous to fix...
+function STAT_DEC(b) {
+	// LDH a, STAT
+	if (ROM[b+0] !== 0xF0) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x41) {
+		return 0;
+	}
+	// AND $03
+	if (ROM[b+2] !== 0xE6) {
+		return 0;
+	}
+	if (ROM[b+3] !== 0x03) {
+		return 0;
+	}
+	// DEC a
+	if (ROM[b+4] !== 0x3D) {
+		return 0;
+	}
+	
+	// JR NZ, s8 | JR Z, s8 | JR NC, s8 | JR C, s8
+	var j = ROM[b+5];
+	if ((j !== 0x20) && (j != 0x28) && (j != 0x30) && (j != 0x38)) {
+		return 0;
+	}
+
+	// Let's make sure that we can find a RST that's available
+	var rstBase;
+	var useRst;
+	for (i=7; i>=0; i--) {
+		rstBase = i;
+		useRst = true;
+		for (j=0; j<3; j++) {
+			if (ROM[rstBase * 8 + j] !== 0) {
+				useRst = false;
+				break;
+			}
+		}
+		if (useRst) {
+			break;
+		}
+	}
+
+	// We couldn't find a usable spot for the code
+	if (useRst == false) {
+		console.log("STAT DEC found at: but no available RST!" + b);
+		return 0;
+	}
+
+	// Flip the AND value
+	newROM[b+3] = flipTable[ROM[b+3]];
+	// Change the dec to rst
+	newROM[b+4] = rstInst[rstBase];
+	// Add the code for the RST
+	newROM[rstBase * 8 + 0] = 0xFE;
+	newROM[rstBase * 8 + 1] = 0x80;
+	newROM[rstBase * 8 + 2] = 0xC9;
+
+	console.log("STAT DEC found at: " + b + " Used RST " + (rstBase * 8) );
+	return 7;
+}
+
 function STAT_LD(b) {
 	// If this loads something into a, check if the next instruction is LDH [STAT], a
 	if (ROM[b+0] !== 0x3E) {
@@ -496,6 +564,34 @@ function STAT_AND(b) {
 	// Flip the AND value
 	newROM[b+3] = flipTable[ROM[b+3]];
 	console.log("STAT AND found at: " + b);
+	return 6;
+}
+
+function STAT_OR(b) {
+	// LDH a, STAT
+	if (ROM[b+0] !== 0xF0) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x41) {
+		return 0;
+	}
+
+	// OR s8
+	if (ROM[b+2] !== 0xF6) {
+		return 0;
+	}
+	
+	// LDH STAT, a
+	if (ROM[b+4] !== 0xE0) {
+		return 0;
+	}
+	if (ROM[b+5] !== 0x41) {
+		return 0;
+	}
+
+	// Flip the OR value
+	newROM[b+3] = flipTable[ROM[b+3]];
+	console.log("STAT OR found at: " + b);
 	return 6;
 }
 
@@ -1008,6 +1104,13 @@ fileBox.onchange = function (e) {
 				idx += skipN;
 				continue;
 			}
+
+			// Looking for STAT DEC
+			skipN = STAT_DEC(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
 			
 			// Looking for STAT BC
 			skipN = STAT_BC(idx);
@@ -1032,6 +1135,13 @@ fileBox.onchange = function (e) {
 
 			// Looking for STAT = STAT & XX; jr
 			skipN = STAT_AND(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+			
+			// Looking for STAT = STAT | XX
+			skipN = STAT_OR(idx);
 			if (skipN > 0) {
 				idx += skipN;
 				continue;
