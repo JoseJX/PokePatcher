@@ -102,10 +102,12 @@ function LCDC_XOR(b) {
 	// Fix LCDC
 	newROM[b+2] = 0x4E;
 	
-	console.log("Found LCDC XOR at: " + b);
+	console.log("Found LCDC XOR at: " + b.toString(16));
 	return 3;
 }
 
+// ld a, $xx
+// ldh [LCDC], a
 function LCDC_LD(b) {
 	// If this loads something into a, check if the next instruction is LDH [LCDC], a
 	if (ROM[b+0] !== 0x3E) {
@@ -130,10 +132,13 @@ function LCDC_LD(b) {
 	// Flip the byte and LCDC
 	newROM[b+1] = flipTable[LCDC];
 	newROM[b+3] = 0x4E;
-	console.log("Found LCDC LD at: " + b);
+	console.log("Found LCDC LD at: " + b.toString(16));
 	return 4;
 }
 
+// ldh a, [rLCDC]
+// set/reset x, a
+// ldh [rLCDC], a
 function LCDC_RS_BIT(b) {
 	// LDH a, LCDC
 	if (ROM[b+0] !== 0xF0) {
@@ -178,10 +183,13 @@ function LCDC_RS_BIT(b) {
 	// Fix LCDC, the bit operations are already fixed
 	newROM[b+1] = 0x4E;
 	newROM[idx + 1] = 0x4E;
-	console.log("LCDC SET BIT found at: " + b);
+	console.log("LCDC SET BIT found at: " + b.toString(16));
 	return 6;
 }
 
+// ldh a, [rLCDC]
+// bit x, a
+// JR xx, xx
 function LCDC_BIT_JR(b) {
 	// LDH a, LCDC
 	if (ROM[b+0] !== 0xF0) {
@@ -208,10 +216,13 @@ function LCDC_BIT_JR(b) {
 	// Flip the bit access and fix LCDC
 	newROM[b+1] = 0x4E;
 	newROM[b+3] = bt;
-	console.log("Found LCDC BIT JR at: " + b);
+	console.log("Found LCDC BIT JR at: " + b.toString(16));
 	return 6;
 }
 
+// ldh a, [rLCDC]
+// bit x, a
+// JP xx, xxxx
 function LCDC_BIT_JP(b) {
 	// LDH a, LCDC
 	if (ROM[b+0] !== 0xF0) {
@@ -238,10 +249,13 @@ function LCDC_BIT_JP(b) {
 	// Flip the bit access and fix LCDC
 	newROM[b+1] = 0x4E;
 	newROM[b+3] = bt;
-	console.log("Found LCDC BIT JP at: " + b);
+	console.log("Found LCDC BIT JP at: " + b.toString(16));
 	return 7;
 }
 	
+// ldh a, [rLCDC]
+// bit x, a
+// ret z
 function LCDC_BIT_RET(b) {
 	// LDH a, LCDC
 	if (ROM[b+0] !== 0xF0) {
@@ -267,10 +281,13 @@ function LCDC_BIT_RET(b) {
 	// Flip the bit access and fix LCDC
 	newROM[b+1] = 0x4E;
 	newROM[b+3] = bt;
-	console.log("Found LCDC BIT RET at: " + b);
+	console.log("Found LCDC BIT RET at: " + b.toString(16));
 	return 5;
 }
 
+// ldh a, [rLCDC]
+// add a
+// jr c, s8
 function LCDC_ADD(b) {
 	// LDH a, LCDC
 	if (ROM[b+0] !== 0xF0) {
@@ -291,10 +308,13 @@ function LCDC_ADD(b) {
 	// Replace the address and fix the check
 	newROM[b+1] = 0x4E;
 	newROM[b+2] = 0x0F;
-	console.log("Found LCDC ADD at: " + b);
+	console.log("Found LCDC ADD at: " + b.toString(16));
 	return 5;
 }
 
+// ldh a, [rLCDC]
+// and xx
+// ldh [rLCDC], a
 function LCDC_AND(b) {
 	// LDH a, LCDC
 	if (ROM[b+0] !== 0xF0) {
@@ -321,10 +341,13 @@ function LCDC_AND(b) {
 	newROM[b+1] = 0x4E;
 	newROM[b+3] = flipTable[ROM[b+3]];
 	newROM[b+5] = 0x4E;
-	console.log("LCDC AND found at: " + b);
+	console.log("LCDC AND found at: " + b.toString(16));
 	return 6;
 }
 
+// ldh a, [rLCDC]
+// and xx
+// ret xx, xx
 function LCDC_AND_RET(b) {
 	// LDH a, LCDC
 	if (ROM[b+0] !== 0xF0) {
@@ -348,10 +371,13 @@ function LCDC_AND_RET(b) {
 	// Fix LCDC and fix the AND value
 	newROM[b+1] = 0x4E;
 	newROM[b+3] = flipTable[ROM[b+3]];
-	console.log("LCDC AND RET found at: " + b);
+	console.log("LCDC AND RET found at: " + b.toString(16));
 	return 6;
 }
 
+// ldh a, [rLCDC]
+// and xx
+// jr xx, xx
 function LCDC_AND_JR(b) {
 	// LDH a, LCDC
 	if (ROM[b+0] !== 0xF0) {
@@ -375,10 +401,12 @@ function LCDC_AND_JR(b) {
 	// Fix LCDC and fix the AND value
 	newROM[b+1] = 0x4E;
 	newROM[b+3] = flipTable[ROM[b+3]];
-	console.log("LCDC AND JR found at: " + b);
+	console.log("LCDC AND JR found at: " + b.toString(16));
 	return 6;
 }
 
+// ld hl, $ff40
+// set/res x, a (can repeat)
 function LCDC_FF40(b) {
 	// LD hl, ff40
 	if (ROM[b+0] !== 0x21) {
@@ -416,8 +444,60 @@ function LCDC_FF40(b) {
 	}
 
 	newROM[b+1] = 0x4E;
-	console.log("LCDC FF40 found at: " + b);
+	console.log("LCDC FF40 found at: " + b.toString(16));
 	return 0;
+}
+
+// ldh a, [rLCDC]
+// push af
+// call xxxx
+function LCDC_Push(b) {
+	// ldh a, [rLCDC]	
+	if (ROM[b+0] !== 0xF0) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x40) {
+		return 0;
+	}
+	// push af
+	if (ROM[b+2] !== 0xF5) {
+		return 0;
+	}
+	// call xxxxx
+	if (ROM[b+3] !== 0xCD) {
+		return 0;
+	}
+
+	// Swap the LCDC usage
+	newROM[b+1] = 0x4E;
+	console.log("LCDC Push found at: " + b.toString(16));
+	return 4;
+}
+
+// pop af
+// ldh [rLCDC], a
+// call xxxx
+function LCDC_Pop(b) {
+	// pop af
+	if (ROM[b+0] !== 0xF1) {
+		return 0;
+	}
+	// ldh [rLCDC], a
+	if (ROM[b+1] !== 0xE0) {
+		return 0;
+	}
+	if (ROM[b+2] !== 0x40) {
+		return 0;
+	}
+	// ei
+	if (ROM[b+3] !== 0xFB) {
+		return 0;
+	}
+
+	// Swap the LCDC usage
+	newROM[b+1] = 0x4E;
+	console.log("LCDC Pop found at: " + b.toString(16));
+	return 4;
 }
 
 // This is an annoying one, STAT is checked with LD a, [c]; AND b
@@ -448,8 +528,33 @@ function STAT_BC(b) {
 
 	// Replace the STAT value
 	newROM[b+1] = flipTable[ROM[b+1]];
-	console.log("STAT BC found at: " + b);
+	console.log("STAT BC found at: " + b.toString(16));
 	return 5;
+}
+
+// Stat in B (mask) C (STAT Reg)
+function STAT_BC_V2(b) {
+	// ld bc, $0241
+	if (ROM[b+0] !== 0x01) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x41) {
+		return 0;
+	}
+	if (ROM[b+2] !== 0x02) {
+		return 0;
+	}
+
+	// pop de
+	// Just a check to make sure we're not mis-identifying this code
+	if (ROM[b+3] !== 0xD1) {
+		return 0;
+	}
+
+	// Replace the STAT value
+	newROM[b+2] = flipTable[ROM[b+2]];
+	console.log("STAT BC v2 found at: " + b.toString(16));
+	return 4;
 }
 
 // Ugh, this is ridiculous to fix...
@@ -498,7 +603,7 @@ function STAT_DEC(b) {
 
 	// We couldn't find a usable spot for the code
 	if (useRst == false) {
-		console.log("STAT DEC found at: but no available RST!" + b);
+		console.log("STAT DEC found at: but no available RST!" + b.toString(16));
 		return 0;
 	}
 
@@ -511,7 +616,7 @@ function STAT_DEC(b) {
 	newROM[rstBase * 8 + 1] = 0x80;
 	newROM[rstBase * 8 + 2] = 0xC9;
 
-	console.log("STAT DEC found at: " + b + " Used RST " + (rstBase * 8) );
+	console.log("STAT DEC found at: " + b.toString(16) + " Used RST " + (rstBase * 8) );
 	return 7;
 }
 
@@ -538,7 +643,7 @@ function STAT_LD(b) {
 
 	// Flip the byte
 	newROM[b+1] = flipTable[STAT];
-	console.log("Found STAT LD at: " + b);
+	console.log("Found STAT LD at: " + b.toString(16));
 	return 4;
 }
 
@@ -563,7 +668,7 @@ function STAT_AND(b) {
 
 	// Flip the AND value
 	newROM[b+3] = flipTable[ROM[b+3]];
-	console.log("STAT AND found at: " + b);
+	console.log("STAT AND found at: " + b.toString(16));
 	return 6;
 }
 
@@ -591,7 +696,7 @@ function STAT_OR(b) {
 
 	// Flip the OR value
 	newROM[b+3] = flipTable[ROM[b+3]];
-	console.log("STAT OR found at: " + b);
+	console.log("STAT OR found at: " + b.toString(16));
 	return 6;
 }
 
@@ -622,7 +727,7 @@ function STAT_IN_B(b) {
 
 	// Flip the AND value
 	newROM[b+1] = flipTable[ROM[b+1]];
-	console.log("STAT IN B at: " + b);
+	console.log("STAT IN B at: " + b.toString(16));
 	// We only skip the first two bytes, the next part will be taken care of by another checker
 	return 2;
 }
@@ -699,7 +804,7 @@ function STAT_FF41_LCDC(b) {
 	// Patch the bit order for LCDC
 	newROM[b+14] = 0x86;
 
-	console.log("STAT FF41 LCDC found at: " + b);
+	console.log("STAT FF41 LCDC found at: " + b.toString(16));
 	return 15;
 }
 
@@ -750,7 +855,7 @@ function STAT_FF41(b) {
 	newROM[b+8] = ROM[b+8];
 	newROM[b+9] = flipTable[ROM[b+9]];
 
-	console.log("STAT FF41 found at: " + b);
+	console.log("STAT FF41 found at: " + b.toString(16));
 	return 15;
 }
 
@@ -773,7 +878,7 @@ function STAT_BC_PPC(b) {
 
 	// Swap the 03
 	newROM[b+2] = 0xC0;
-	console.log("STAT BC PPC found at: " + b);
+	console.log("STAT BC PPC found at: " + b.toString(16));
 	return 4;
 }
 
@@ -816,7 +921,7 @@ function RTC_STOP(b) {
 	// Fix the RTC Address
 	newROM[b+7] = 0xBF;
 	newROM[b+6] = 0xFF;
-	console.log("RTC Stop found at: " + b);
+	console.log("RTC Stop found at: " + b.toString(16));
 	return 10;
 }
 
@@ -859,7 +964,7 @@ function RTC_START(b) {
 	// Fix the RTC Address
 	newROM[b+7] = 0xBF;
 	newROM[b+6] = 0xFF;
-	console.log("RTC Start found at: " + b);
+	console.log("RTC Start found at: " + b.toString(16));
 	return 10;
 }
 
@@ -902,7 +1007,7 @@ function RTC_SAVE(b) {
 	// Fix the RTC Address
 	newROM[b+2] = 0xBF;
 	newROM[b+1] = 0xFF;
-	console.log("RTC Save found at: " + b);
+	console.log("RTC Save found at: " + b.toString(16));
 	return 10;
 }
 
@@ -939,7 +1044,7 @@ function RTC_GET_CLOCK(b) {
 	// Fix the RTC Address
 	newROM[b+2] = 0xBF;
 	newROM[b+1] = 0xFF;
-	console.log("RTC GET Clock found at: " + b);
+	console.log("RTC GET Clock found at: " + b.toString(16));
 	return 8;
 }
 
@@ -976,7 +1081,7 @@ function RTC_SET_CLOCK(b) {
 	// Fix the RTC Address
 	newROM[b+2] = 0xBF;
 	newROM[b+1] = 0xFF;
-	console.log("RTC SET Clock found at: " + b);
+	console.log("RTC SET Clock found at: " + b.toString(16));
 	return 8;
 }
 
@@ -1105,8 +1210,29 @@ fileBox.onchange = function (e) {
 				continue;
 			}
 
+			// Looking for LCDC push
+			skipN = LCDC_Push(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+
+			// Looking for LCDC pop
+			skipN = LCDC_Pop(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+
 			// Looking for STAT DEC
 			skipN = STAT_DEC(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+			
+			// Looking for STAT BC v2
+			skipN = STAT_BC_V2(idx);
 			if (skipN > 0) {
 				idx += skipN;
 				continue;
@@ -1118,7 +1244,7 @@ fileBox.onchange = function (e) {
 				idx += skipN;
 				continue;
 			}
-
+			
 			// Looking for STAT BC PPC
 			skipN = STAT_BC_PPC(idx);
 			if (skipN > 0) {
@@ -1153,6 +1279,8 @@ fileBox.onchange = function (e) {
 				idx += skipN;
 				continue;
 			}
+
+			// Looking for some missing 
 			
 			// Looking for Pokemon Crystal Clear $ff41 use
 			// This one must be done first so we don't miss
