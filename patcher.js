@@ -882,6 +882,33 @@ function STAT_BC_PPC(b) {
 	return 4;
 }
 
+// This is a variation on the above for a newer version of Polished Crystal
+function STAT_BC_PPC_V2(b) {
+	// ld bc, $0341
+	if (ROM[b+0] !== 0x01) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x41) {
+		return 0;
+	}
+	if (ROM[b+2] !== 0x03) {
+		return 0;
+	}
+	// ld a, [c]
+	if (ROM[b+3] !== 0xF2) {
+		return 0;
+	}
+	// and b
+	if (ROM[b+4] !== 0xA0) {
+		return 0;
+	}
+
+	// Swap the 03
+	newROM[b+2] = 0xC0;
+	console.log("STAT BC PPC v2 found at: " + b.toString(16));
+	return 5;
+}
+
 function RTC_STOP(b) {
 	// ld a, $0c
 	if (ROM[b+0] !== 0x3E) {
@@ -1244,9 +1271,16 @@ fileBox.onchange = function (e) {
 				idx += skipN;
 				continue;
 			}
-			
+
 			// Looking for STAT BC PPC
 			skipN = STAT_BC_PPC(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+
+			// Looking for STAT BC PPC V2
+			skipN = STAT_BC_PPC_V2(idx);
 			if (skipN > 0) {
 				idx += skipN;
 				continue;
