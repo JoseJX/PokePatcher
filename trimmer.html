@@ -1,0 +1,60 @@
+<html>
+<head>
+  <title>Save Trimmer</title>
+</head>
+<body>
+
+<h1>Save Trimmer</h1>
+
+<div>
+If you have a .sav file from the Analogue Pocket and you would like to write it back to a cart that only has 8KB of RAM, this page is for you! If your cart uses 32KB of RAM, then you do not need to use the trimmer.
+</div>
+
+<div>
+Get your .sav file from your SD Card in <i>GB Studio/Saves/</i>, it will have the same name as your .pocket file. So, as an example, if your game was named <i>SuperCool.pocket</i>, then you'd get the save file from <i>GB Studio/Saves/SuperCool.sav</i>. Once you have your .sav file, use the control below to trim it for use with other devices.
+</div>
+
+<input type="file" id="fileInput"/>
+
+<script>
+
+var fileBox = document.getElementById('fileInput');
+
+fileBox.onchange = function (e) {
+	e.preventDefault();
+
+	var file = fileBox.files[0];
+	if (!file) {
+		return;
+	}
+	var reader = new FileReader();
+	reader.onload = function(e) {
+		var contents = e.target.result;
+		if (contents.length <= 8192) {
+			window.alert("Nothing to do, the save is already 8KB or less.");
+			return;
+		}
+		var newSave = new ArrayBuffer(8192);
+		new Uint8Array(newSave).set(new Uint8Array(contents.slice(0,8192)));
+		console.log(newSave.length);
+
+		const link = document.createElement( 'a' );
+		link.style.display = 'none';
+		document.body.appendChild( link );
+
+		const blob = new Blob( [ newSave ], { type: 'application/octet-stream' } );
+		const objectURL = URL.createObjectURL( blob );
+
+		link.href = objectURL;
+		link.href = URL.createObjectURL( blob );
+		link.download =  'trimmed-' + file.name;
+		link.click();
+	};
+	reader.readAsArrayBuffer(file);
+}
+
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+<html>
+<head>
+  <title>Save Padder</title>
+</head>
+<body>
+
+<h1>Save Padder</h1>
+
+<div>
+If you have a .sav file from a cart, as in this situation <a href="https://old.reddit.com/r/AnaloguePocket/comments/sm7okm/sav_file_from_real_cartridge_wont_load_with/">here</a> and you need to pad it to 32k so that it works on the pocket with a .pocket conversion, this page is for you!
+</div>
+
+<div>
+Select your .sav file using the control below and then save the padded .sav file to <i>GB Studio/Saves/</i> with the same name as your .pocket file. So, as an example, if your game was named <i>SuperCool.pocket</i>, then you'd put the padded save file into <i>GB Studio/Saves/SuperCool.sav</i>.
+</div>
+
+<input type="file" id="fileInput"/>
+
+<script>
+
+var fileBox = document.getElementById('fileInput');
+
+fileBox.onchange = function (e) {
+	e.preventDefault();
+
+	var file = fileBox.files[0];
+	if (!file) {
+		return;
+	}
+	var reader = new FileReader();
+	reader.onload = function(e) {
+		var contents = e.target.result;
+		if (contents.length >= 32768) {
+			window.alert("Nothing to do, the save is already 32k or greater.");
+			return;
+		}
+		var newSave = new ArrayBuffer(32768);
+		new Uint8Array(newSave).set(new Uint8Array(contents));
+		console.log(newSave.length);
+
+		const link = document.createElement( 'a' );
+		link.style.display = 'none';
+		document.body.appendChild( link );
+
+		const blob = new Blob( [ newSave ], { type: 'application/octet-stream' } );
+		const objectURL = URL.createObjectURL( blob );
+
+		link.href = objectURL;
+		link.href = URL.createObjectURL( blob );
+		link.download =  'padded-' + file.name;
+		link.click();
+	};
+	reader.readAsArrayBuffer(file);
+}
+
+</script>
+
+
+</body>
+</html>
