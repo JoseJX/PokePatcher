@@ -859,6 +859,33 @@ function STAT_FF41(b) {
 	return 15;
 }
 
+// This fix is specific to Pokemon Prism
+function STAT_BC_PP(b) {
+	// ld bc, $0341
+	if (ROM[b+0] !== 0x01) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x41) {
+		return 0;
+	}
+	if (ROM[b+2] !== 0x03) {
+		return 0;
+	}
+	// ld d, $12
+	if (ROM[b+3] !== 0x16) {
+		return 0;
+	}
+	if (ROM[b+4] !== 0x12) {
+		return 0;
+	}
+
+	// Swap the 03
+	newROM[b+2] = 0xC0;
+	console.log("STAT BC PP found at: " + b.toString(16));
+	return 5;
+}
+
+
 // This fix is specific to Pokemon Polished Crystal
 function STAT_BC_PPC(b) {
 	// ld bc, $0341
@@ -1267,6 +1294,13 @@ fileBox.onchange = function (e) {
 			
 			// Looking for STAT BC
 			skipN = STAT_BC(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+
+			// Looking for STAT BC PP
+			skipN = STAT_BC_PP(idx);
 			if (skipN > 0) {
 				idx += skipN;
 				continue;
