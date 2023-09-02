@@ -859,7 +859,7 @@ function STAT_FF41(b) {
 	return 15;
 }
 
-// This fix is specific to Pokemon Prism
+// This fix first seen in Pokemon Prism
 function STAT_BC_PP(b) {
 	// ld bc, $0341
 	if (ROM[b+0] !== 0x01) {
@@ -885,7 +885,7 @@ function STAT_BC_PP(b) {
 	return 5;
 }
 
-// This fix is specific to Pokemon Prism
+// This fix identifies a STAT seen in Pokemon Prism
 function STAT_BC_PP_V2(b) {
 	// ld bc, $0741
 	if (ROM[b+0] !== 0x01) {
@@ -911,6 +911,51 @@ function STAT_BC_PP_V2(b) {
 	return 5;
 }
 
+// This fix identifies a STAT sequence seen in Pokemon Prism
+function STAT_DOUBLE_C(b) {
+	// ld a, [c]
+	if (ROM[b+0] !== 0xf2) {
+		return 0;
+	}
+	// and $03
+	if (ROM[b+1] !== 0xe6) {
+		return 0;
+	}
+	if (ROM[b+2] !== 0x03) {
+		return 0;
+	}
+	// JR NZ
+	if (ROM[b+3] !== 0x28) {
+		return 0;
+	}
+	if (ROM[b+4] !== 0xFB) {
+		return 0;
+	}
+	// ld a, [c]
+	if (ROM[b+5] !== 0xf2) {
+		return 0;
+	}
+	// and $03
+	if (ROM[b+6] !== 0xe6) {
+		return 0;
+	}
+	if (ROM[b+7] !== 0x03) {
+		return 0;
+	}
+	// JR Z
+	if (ROM[b+8] !== 0x20) {
+		return 0;
+	}
+	if (ROM[b+9] !== 0xFB) {
+		return 0;
+	}
+
+	// Swap the 03s
+	newROM[b+2] = 0xC0;
+	newROM[b+7] = 0xC0;
+	console.log("STAT DOUBLE C found at: " + b.toString(16));
+	return 10;
+}
 
 // This fix is specific to Pokemon Polished Crystal
 function STAT_BC_PPC(b) {
@@ -1324,7 +1369,14 @@ fileBox.onchange = function (e) {
 				idx += skipN;
 				continue;
 			}
-
+			
+			// Looking for STAT DOUBLE C
+			skipN = STAT_DOUBLE_C(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+			
 			// Looking for STAT BC PP
 			skipN = STAT_BC_PP(idx);
 			if (skipN > 0) {
