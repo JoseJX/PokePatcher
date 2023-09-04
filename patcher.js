@@ -557,6 +557,53 @@ function STAT_BC_V2(b) {
 	return 4;
 }
 
+// This example has a repeated stanza with STAT in [de]
+// 1a e6 03 28 fb 1a e6 03 20 fb
+function STAT_DE(b) {
+	// LD a, [de]
+	if (ROM[b+0] !== 0x1A) {
+		return 0;
+	}
+	// AND $03
+	if (ROM[b+1] !== 0xE6) {
+		return 0;
+	}
+	if (ROM[b+2] !== 0x03) {
+		return 0;
+	}
+	// JR Z
+	if (ROM[b+3] !== 0x28) {
+		return 0;
+	}
+	if (ROM[b+4] !== 0xFB) {
+		return 0;
+	}
+	// LD a, [de]
+	if (ROM[b+5] !== 0x1A) {
+		return 0;
+	}
+	// AND $03
+	if (ROM[b+6] !== 0xE6) {
+		return 0;
+	}
+	if (ROM[b+7] !== 0x03) {
+		return 0;
+	}
+	// JR NZ
+	if (ROM[b+8] !== 0x20) {
+		return 0;
+	}
+	if (ROM[b+9] !== 0xFB) {
+		return 0;
+	}
+
+	// Flip the AND values
+	newROM[b+2] = 0xC0;
+	newROM[b+7] = 0xC0;
+	console.log("STAT DE found at: " + b.toString(16));
+	return 10;
+}
+
 // Ugh, this is ridiculous to fix...
 function STAT_DEC(b) {
 	// LDH a, STAT
@@ -1432,9 +1479,14 @@ fileBox.onchange = function (e) {
 				idx += skipN;
 				continue;
 			}
-
-			// Looking for some missing 
 			
+			// Looking for STAT in DE
+			skipN = STAT_DE(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+
 			// Looking for Pokemon Crystal Clear $ff41 use
 			// This one must be done first so we don't miss
 			// the hidden LCDC :(
