@@ -604,9 +604,69 @@ function STAT_DE(b) {
 	return 10;
 }
 
+// This one was hiding...
+function STAT_AND_CP(b) {
+	// LDH a, [STAT]
+	if (ROM[b+0] !== 0xF0) {
+		return 0;
+	}
+	if (ROM[b+1] !== 0x41) {
+		return 0;
+	}
+	// AND $03
+	if (ROM[b+2] !== 0xE6) {
+		return 0;
+	}
+	if (ROM[b+3] !== 0x03) {
+		return 0;
+	}
+	// CP $01
+	if (ROM[b+4] !== 0xFE) {
+		return 0;
+	}
+	if (ROM[b+5] !== 0x01) {
+		return 0;
+	}
+	// This isn't part of the STAT, just organized weird
+	// rl b
+	if (ROM[b+6] != 0xCB) {
+		return 0;
+	}
+	if (ROM[b+7] != 0x10) {
+		return 0;
+	}
+	// pop af
+	if (ROM[b+8] != 0xF1) {
+		return 0;
+	}
+	// ld c, $f0
+	if (ROM[b+9] != 0x0E) {
+		return 0;
+	}
+	if (ROM[b+10] != 0xF0) {
+		return 0;
+	}
+	// This is the stat compare result
+	// jr nc
+	if (ROM[b+11] != 0x30) {
+		return 0;
+	}
+	
+	// Flip the STAT value
+	newROM[b+3] = 0xC0;
+	// Remove the CP
+	newROM[b+4] = 0x00;
+	newROM[b+5] = 0x00;
+	// Change the jump condition to JR NZ
+	newROM[b+11] = 0x20;	
+	
+	console.log("STAT AND CP found at: " + b.toString(16));
+	return 12;
+}
+
 // Ugh, this is ridiculous to fix...
 function STAT_DEC(b) {
-	// LDH a, STAT
+	// LDH a, [STAT]
 	if (ROM[b+0] !== 0xF0) {
 		return 0;
 	}
@@ -1482,6 +1542,13 @@ fileBox.onchange = function (e) {
 			
 			// Looking for STAT in DE
 			skipN = STAT_DE(idx);
+			if (skipN > 0) {
+				idx += skipN;
+				continue;
+			}
+			
+			// Looking for STAT CP
+			skipN = STAT_AND_CP(idx);
 			if (skipN > 0) {
 				idx += skipN;
 				continue;
